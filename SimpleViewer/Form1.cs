@@ -22,13 +22,17 @@ namespace SimpleViewer
         int height;
         Bitmap bitmap;
         List<TagElementObjectData> tagele_obj = new List<TagElementObjectData>();
+        int contrast;
+        TagElementObjectData obj_data;
 
         public Form1()
         {
             InitializeComponent();
 
             iFilename = "temp.dcm";
-            iFilename = @"koneko001.dcm";
+            //iFilename = @"koneko001.dcm";
+
+            contrast = 0;
 
             int tag_h = 0;
             int tag_l = 0;
@@ -41,6 +45,10 @@ namespace SimpleViewer
             int i = 0;
 
             List<string> TagEle = new List<string>();
+
+            dataGridView1.DoubleClick += DataGridView1_DoubleClick;
+
+            pictureBox1.MouseWheel += PictureBox1_MouseWheel;
 
             using (var fs = new FileStream(iFilename, FileMode.Open))
             {
@@ -91,6 +99,8 @@ namespace SimpleViewer
 
                                 SetPixcelsDataContainer(fs, (int)start, (int)fileLength, ref fi_count, ref obj);
 
+                                obj_data = obj;
+
                                 bitmap = CreateBitmap(obj.data, width, height);
                             }
                             else
@@ -121,7 +131,27 @@ namespace SimpleViewer
 
             pictureBox1.Image = img;
 
-            dataGridView1.DoubleClick += DataGridView1_DoubleClick;
+        }
+
+        private void PictureBox1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            contrast += e.Delta / 120;
+
+            //MessageBox.Show(contrast.ToString());
+
+            //return;
+
+            bitmap = CreateBitmap(obj_data.data, width, height);
+
+            ShowTagElementData(tagele_obj);
+
+            Bitmap img = new Bitmap(1024, 1024);
+            Graphics g = Graphics.FromImage(img);
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Default;
+            g.DrawImage(bitmap, 0, 0, 512, 512);
+            img = new Bitmap(img);
+
+            pictureBox1.Image = img;
         }
 
         private int GetWidthFrom00280010(TagElementObjectData obj)
@@ -192,9 +222,8 @@ namespace SimpleViewer
             for (int i = 0; i < width * height; i++)
             {
                 int value = source[2 * i] + source[2 * i + 1] * 256;
-                //value >>= 4;//(bits_stored - high_bits);
 
-                value >>= 2;
+                value >>= (2 + contrast);
 
                 rgb[3 * i] = (byte)value;
                 rgb[3 * i + 1] = (byte)value;
