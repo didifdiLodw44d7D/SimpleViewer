@@ -14,8 +14,14 @@ namespace SimpleViewer
 {
     public partial class Form1 : Form
     {
+        // input
         string iFilename;
+
+        // output
+        int width;
+        int height;
         Bitmap bitmap;
+        List<TagElementObjectData> tagele_obj = new List<TagElementObjectData>();
 
         public Form1()
         {
@@ -33,7 +39,6 @@ namespace SimpleViewer
             var fileLength = fi.Length;
             Int64 fi_count = 0;
             int i = 0;
-            List<TagElementObjectData> tagele_obj = new List<TagElementObjectData>();
 
             List<string> TagEle = new List<string>();
 
@@ -86,13 +91,18 @@ namespace SimpleViewer
 
                                 SetPixcelsDataContainer(fs, (int)start, (int)fileLength, ref fi_count, ref obj);
 
-                                bitmap = CreateBitmap(obj.data, 320, 320);
+                                bitmap = CreateBitmap(obj.data, width, height);
                             }
                             else
                             {
                                 SetDataContainer(fs, ref fi_count, ref obj);
 
                                 tagele_obj.Add(obj);
+
+                                if ("0028,0010" == TagEle[i])
+                                    width = GetWidthFrom00280010(obj);
+                                if ("0028,0011" == TagEle[i])
+                                    height = GetHeightFrom00280011(obj);
                             }
 
                             i++;
@@ -109,7 +119,29 @@ namespace SimpleViewer
             g.DrawImage(bitmap, 0, 0, 512, 512);
             img = new Bitmap(img);
 
-            pictureBox1.Image = img;            
+            pictureBox1.Image = img;
+
+            dataGridView1.DoubleClick += DataGridView1_DoubleClick;
+        }
+
+        private int GetWidthFrom00280010(TagElementObjectData obj)
+        {
+            return ToInt32_LittleEndian(obj.data);
+        }
+
+        private int GetHeightFrom00280011(TagElementObjectData obj)
+        {
+            return ToInt32_LittleEndian(obj.data);
+        }
+
+        private void DataGridView1_DoubleClick(object sender, EventArgs e)
+        {
+            var row = dataGridView1.CurrentCell.RowIndex;
+
+            var form2 = new Form2(tagele_obj[row]);
+
+            form2.ShowDialog();
+
         }
 
         /// <summary>
@@ -292,7 +324,7 @@ namespace SimpleViewer
             count += size;
 
             tagele_obj.vr = vr;
-            tagele_obj.lenght = len;
+            tagele_obj.length = len;
             tagele_obj.data = data;
         }
 
@@ -402,7 +434,7 @@ namespace SimpleViewer
             count = i;
 
             tagele_obj.vr = vr;
-            tagele_obj.lenght = len;
+            tagele_obj.length = len;
             tagele_obj.data = data;
         }
 
@@ -434,7 +466,7 @@ namespace SimpleViewer
 
                 string vr = Encoding.ASCII.GetString(s.vr);
 
-                int length = ToInt32_LittleEndian(s.lenght);
+                int length = ToInt32_LittleEndian(s.length);
 
                 string str = "(" + tag_name + "," + element_name + ")";
 

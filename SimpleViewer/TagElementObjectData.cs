@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace SimpleViewer
 {
-    class TagElementObjectData
+    public class TagElementObjectData
     {
-        public byte[] tag = new byte[4];
-        public byte[] element = new byte[4];
+        public byte[] tag = new byte[2];
+        public byte[] element = new byte[2];
         public byte[] vr = new byte[2];
-        public byte[] lenght = new byte[4];
-        public byte[] data = new byte[128];
+        public byte[] length = new byte[4];
+        public byte[] data = new byte[64];
     }
 }
