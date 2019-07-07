@@ -12,6 +12,6 @@ namespace SimpleViewer
         public byte[] element = new byte[2];
         public byte[] vr = new byte[2];
         public byte[] length = new byte[4];
-        public byte[] data = new byte[64];
+        public byte[] value = new byte[64];
     }
 }

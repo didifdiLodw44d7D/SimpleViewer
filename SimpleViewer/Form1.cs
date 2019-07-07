@@ -22,17 +22,17 @@ namespace SimpleViewer
         int height;
         Bitmap bitmap;
         List<TagElementObjectData> tagele_obj = new List<TagElementObjectData>();
-        int contrast;
         TagElementObjectData obj_data;
+        double whitebalance;
 
         public Form1()
         {
             InitializeComponent();
 
             iFilename = "temp.dcm";
-            //iFilename = @"koneko001.dcm";
+            iFilename = @"koneko001.dcm";
 
-            contrast = 0;
+            whitebalance = 0;
 
             int tag_h = 0;
             int tag_l = 0;
@@ -101,7 +101,7 @@ namespace SimpleViewer
 
                                 obj_data = obj;
 
-                                bitmap = CreateBitmap(obj.data, width, height);
+                                bitmap = CreateBitmap(obj.value, width, height);
                             }
                             else
                             {
@@ -135,13 +135,9 @@ namespace SimpleViewer
 
         private void PictureBox1_MouseWheel(object sender, MouseEventArgs e)
         {
-            contrast += e.Delta / 120;
+            whitebalance += (double)(e.Delta / 120) / 10;
 
-            //MessageBox.Show(contrast.ToString());
-
-            //return;
-
-            bitmap = CreateBitmap(obj_data.data, width, height);
+            bitmap = CreateBitmap(obj_data.value, width, height);
 
             ShowTagElementData(tagele_obj);
 
@@ -156,19 +152,19 @@ namespace SimpleViewer
 
         private int GetWidthFrom00280010(TagElementObjectData obj)
         {
-            return ToInt32_LittleEndian(obj.data);
+            return ToInt32_LittleEndian(obj.value);
         }
 
         private int GetHeightFrom00280011(TagElementObjectData obj)
         {
-            return ToInt32_LittleEndian(obj.data);
+            return ToInt32_LittleEndian(obj.value);
         }
 
         private void DataGridView1_DoubleClick(object sender, EventArgs e)
         {
             var row = dataGridView1.CurrentCell.RowIndex;
 
-            var form2 = new Form2(tagele_obj[row]);
+            var form2 = new Form2(tagele_obj, row);
 
             form2.ShowDialog();
 
@@ -223,7 +219,7 @@ namespace SimpleViewer
             {
                 int value = source[2 * i] + source[2 * i + 1] * 256;
 
-                value >>= (2 + contrast);
+                value >>= (2 + (int)whitebalance);
 
                 rgb[3 * i] = (byte)value;
                 rgb[3 * i + 1] = (byte)value;
@@ -354,7 +350,7 @@ namespace SimpleViewer
 
             tagele_obj.vr = vr;
             tagele_obj.length = len;
-            tagele_obj.data = data;
+            tagele_obj.value = data;
         }
 
         /// <summary>
@@ -464,7 +460,7 @@ namespace SimpleViewer
 
             tagele_obj.vr = vr;
             tagele_obj.length = len;
-            tagele_obj.data = data;
+            tagele_obj.value = data;
         }
 
         /// <summary>
@@ -499,7 +495,7 @@ namespace SimpleViewer
 
                 string str = "(" + tag_name + "," + element_name + ")";
 
-                var data = EncodeVrData(vr, s.data);
+                var data = EncodeVrData(vr, s.value);
 
                 dataGridView1.Rows.Add(str, data);
             }

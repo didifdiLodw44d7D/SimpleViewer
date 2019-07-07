@@ -12,14 +12,17 @@ namespace SimpleViewer
 {
     public partial class Form2 : Form
     {
+        List<TagElementObjectData> obj;
         public Form2()
         {
             InitializeComponent();
         }
 
-        public Form2(TagElementObjectData obj)
+        public Form2(IReadOnlyList<TagElementObjectData> obj, int row)
         {
             InitializeComponent();
+
+            this.obj = (List<TagElementObjectData>)obj;
 
             textBox1.ReadOnly = true;
             textBox2.ReadOnly = true;
@@ -27,19 +30,66 @@ namespace SimpleViewer
             textBox4.ReadOnly = true;
             textBox5.ReadOnly = true;
 
-            textBox1.Text = GetTagName(obj.tag);
-            textBox2.Text = GetElementName(obj.element);
-            textBox3.Text = GetVR(obj.vr);
-            textBox4.Text = GetLength(obj.length);
-            textBox5.Text = GetValue(GetVR(obj.vr), obj.data);
+            textBox1.Text = GetTagName(obj[row].tag);
+            textBox2.Text = GetElementName(obj[row].element);
+            textBox3.Text = GetVR(obj[row].vr);
+            textBox4.Text = GetLength(obj[row].length);
+            textBox5.Text = GetValue(GetVR(obj[row].vr), obj[row].value);
 
             button1.Click += Button1_Click;
             button2.Click += Button2_Click;
             button3.Click += Button3_Click;
             button4.Click += Button4_Click;
             button5.Click += Button5_Click;
+
+            SetTreeView();
         }
 
+        private void SetTreeView()
+        {
+            List<TreeNode> treeNodeTag = new List<TreeNode>();
+            List<TreeNode> treeNodeElement = new List<TreeNode>();
+
+            int i = 0;
+
+            var data = (from x in obj
+                        select GetTagName(x.tag))
+                        .Distinct();
+
+            foreach (var s in data)
+            {
+                treeNodeElement = new List<TreeNode>();
+
+                var element = from x in obj
+                              where GetElementName(x.tag) == s
+                              select obj;
+
+                foreach (var t in element)
+                {
+                    treeNodeElement.Add(new TreeNode(GetElementName(t[i++].element)));
+                }
+
+                treeNodeTag.Add(new TreeNode(s, treeNodeElement.ToArray()));
+            }
+
+            treeView1.Nodes.AddRange(treeNodeTag.ToArray());
+
+            treeView1.ExpandAll();
+        }
+        private List<string> SetTreeNodeElement(List<TagElementObjectData> obj, string tag)
+        {
+            List<string> ret = null;
+
+            foreach(var s in obj)
+            {
+                string obj_tag = GetTagName(s.tag);
+
+                if (obj_tag == tag)
+                    ret.Add(GetElementName(s.element));
+            }
+
+            return ret;
+        }
         private void CopyingDurationEvent()
         {
             var status = toolStripStatusLabel1.Text;

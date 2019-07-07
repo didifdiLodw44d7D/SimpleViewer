@@ -46,7 +46,10 @@
             this.button6 = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.treeView1 = new System.Windows.Forms.TreeView();
             this.statusStrip1.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -200,11 +203,29 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(47, 20);
             this.toolStripStatusLabel1.Text = "status";
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.treeView1);
+            this.groupBox1.Location = new System.Drawing.Point(40, 269);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(624, 111);
+            this.groupBox1.TabIndex = 16;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "groupBox1";
+            // 
+            // treeView1
+            // 
+            this.treeView1.Location = new System.Drawing.Point(7, 22);
+            this.treeView1.Name = "treeView1";
+            this.treeView1.Size = new System.Drawing.Size(611, 72);
+            this.treeView1.TabIndex = 0;
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.button6);
             this.Controls.Add(this.button5);
@@ -226,6 +247,7 @@
             this.Text = "Form2";
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -251,5 +273,7 @@
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.TreeView treeView1;
     }
 }
