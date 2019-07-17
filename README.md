@@ -6,7 +6,7 @@ COUNTRY:
 
 OVERVIEW:
 	Image Viewer for DICOM format files.
-	Application for "Implicit Little Endian" type only, now.
+	Application for "Explicit Little Endian" type only, now.
 
 DESCRIPTION:
 	This software written in C#.
@@ -23,4 +23,5 @@ DEVELOP ENVIRONMENT:
 
 	dependency tools and others
 		- Makhaon DICOM Dump
+		- DCMTK tools dcmdjpeg
 
