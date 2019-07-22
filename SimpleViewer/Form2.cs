@@ -18,11 +18,11 @@ namespace SimpleViewer
             InitializeComponent();
         }
 
-        public Form2(IReadOnlyList<TagElementObjectData> obj, int row)
+        public Form2(List<TagElementObjectData> obj, int row)
         {
             InitializeComponent();
 
-            this.obj = (List<TagElementObjectData>)obj;
+            this.obj = obj;
 
             textBox1.ReadOnly = true;
             textBox2.ReadOnly = true;

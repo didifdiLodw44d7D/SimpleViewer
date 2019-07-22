@@ -41,6 +41,7 @@
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.help説明ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contactUsホームページToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -109,12 +110,14 @@
             this.toolStripTextBox1.Name = "toolStripTextBox1";
             this.toolStripTextBox1.Size = new System.Drawing.Size(100, 27);
             this.toolStripTextBox1.Text = "Open(開く)";
+            this.toolStripTextBox1.Click += new System.EventHandler(this.ToolStripTextBox1_Click);
             // 
             // toolStripTextBox2
             // 
             this.toolStripTextBox2.Name = "toolStripTextBox2";
             this.toolStripTextBox2.Size = new System.Drawing.Size(100, 27);
             this.toolStripTextBox2.Text = "Close(閉じる)";
+            this.toolStripTextBox2.Click += new System.EventHandler(this.ToolStripTextBox2_Click);
             // 
             // 設定ToolStripMenuItem
             // 
@@ -144,12 +147,18 @@
             this.help説明ToolStripMenuItem.Name = "help説明ToolStripMenuItem";
             this.help説明ToolStripMenuItem.Size = new System.Drawing.Size(241, 26);
             this.help説明ToolStripMenuItem.Text = "Help(説明)";
+            this.help説明ToolStripMenuItem.Click += new System.EventHandler(this.Help説明ToolStripMenuItem_Click);
             // 
             // contactUsホームページToolStripMenuItem
             // 
             this.contactUsホームページToolStripMenuItem.Name = "contactUsホームページToolStripMenuItem";
             this.contactUsホームページToolStripMenuItem.Size = new System.Drawing.Size(241, 26);
             this.contactUsホームページToolStripMenuItem.Text = "Contact Us(ホームページ)";
+            this.contactUsホームページToolStripMenuItem.Click += new System.EventHandler(this.ContactUsホームページToolStripMenuItem_Click);
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
             // 
             // Form1
             // 
@@ -162,7 +171,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "SimpleViewer";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.menuStrip1.ResumeLayout(false);
@@ -187,6 +196,7 @@
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem help説明ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem contactUsホームページToolStripMenuItem;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
 

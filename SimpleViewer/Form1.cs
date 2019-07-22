@@ -16,6 +16,7 @@ namespace SimpleViewer
     {
         // input
         string iFilename;
+        string intermediateFile = "tmp_ImplicitLittleEndian.dcm";
 
         // output
         int width;
@@ -28,9 +29,16 @@ namespace SimpleViewer
         public Form1()
         {
             InitializeComponent();
+        }
 
-            iFilename = "temp.dcm";
-            iFilename = @"koneko001.dcm";
+        private void ExecuteCommnadDisplayAndParsing()
+        {
+            //iFilename = "temp.dcm";
+            //iFilename = @"koneko001.dcm";
+
+            ConvertJpegToDICOMFile(iFilename, intermediateFile);
+
+            iFilename = intermediateFile;
 
             whitebalance = 0;
 
@@ -70,7 +78,7 @@ namespace SimpleViewer
                 fs.Position = 132;
                 fi_count = 132;
 
-                while (fi_count < fileLength)                
+                while (fi_count < fileLength)
                 {
                     GetTagElementByte(TagEle[i], out tag_h, out tag_l, out ele_h, out ele_l);
 
@@ -122,14 +130,10 @@ namespace SimpleViewer
             }
 
             ShowTagElementData(tagele_obj);
-           
-            Bitmap img = new Bitmap(1024, 1024);
-            Graphics g = Graphics.FromImage(img);
-            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Default;
-            g.DrawImage(bitmap, 0, 0, 512, 512);
-            img = new Bitmap(img);
 
-            pictureBox1.Image = img;
+            DisplayPictureboxImageData();
+
+            File.Delete(intermediateFile);
 
         }
 
@@ -139,8 +143,11 @@ namespace SimpleViewer
 
             bitmap = CreateBitmap(obj_data.value, width, height);
 
-            ShowTagElementData(tagele_obj);
+            DisplayPictureboxImageData();
+        }
 
+        private void DisplayPictureboxImageData()
+        {
             Bitmap img = new Bitmap(1024, 1024);
             Graphics g = Graphics.FromImage(img);
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Default;
@@ -227,7 +234,6 @@ namespace SimpleViewer
             }
             System.Runtime.InteropServices.Marshal.Copy(rgb, 0, ptr, width * height * 3);
             bitmap.UnlockBits(bmpData);
-            bitmap.Save("sampleDicom.bmp");
 
             return bitmap;
         }
@@ -239,7 +245,7 @@ namespace SimpleViewer
         /// <returns>encoded data</returns>
         private object EncodeVrData(string vr, byte[] data)
         {
-            switch(vr)
+            switch (vr)
             {
                 case "AE":
                     return Encoding.UTF8.GetString(data);
@@ -291,7 +297,7 @@ namespace SimpleViewer
                     return data; //BitConverter.ToInt64(data, 0);
                 case "UN":
                     return data;
-                case "US":                    
+                case "US":
                     return ToInt32_LittleEndian(data);
                 case "UT":
                     return Encoding.UTF8.GetString(data);
@@ -546,6 +552,65 @@ namespace SimpleViewer
             hex.Append(TagElement[6]);
 
             ele_l = Convert.ToInt32(hex.ToString(), 16);
+        }
+
+        private void ConvertJpegToDICOMFile(string in_filename, string out_filename)
+        {
+            string arg = string.Format(@"/c dcmdjpeg +te {0} {1}", in_filename, out_filename);
+
+            //Processオブジェクトを作成
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+
+            //ComSpec(cmd.exe)のパスを取得して、FileNameプロパティに指定
+            p.StartInfo.FileName = System.Environment.GetEnvironmentVariable("ComSpec");
+            //出力を読み取れるようにする
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardInput = false;
+            //ウィンドウを表示しないようにする
+            p.StartInfo.CreateNoWindow = true;
+            //コマンドラインを指定（"/c"は実行後閉じるために必要）
+            p.StartInfo.Arguments = arg;
+
+            //起動
+            p.Start();
+
+            //出力を読み取る
+            string results = p.StandardOutput.ReadToEnd();
+
+            //プロセス終了まで待機する
+            //WaitForExitはReadToEndの後である必要がある
+            //(親プロセス、子プロセスでブロック防止のため)
+            p.WaitForExit();
+            p.Close();
+        }
+        private void ToolStripTextBox1_Click(object sender, EventArgs e)
+        {
+            var result = openFileDialog1.ShowDialog();
+
+            if(DialogResult.OK == result)
+            {
+                iFilename = openFileDialog1.FileName;
+
+                ExecuteCommnadDisplayAndParsing();
+            }
+        }
+
+        private void ToolStripTextBox2_Click(object sender, EventArgs e)
+        {
+            this.Dispose();
+        }
+
+        private void ContactUsホームページToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var f3 = new Form3();
+
+            f3.ShowDialog();
+        }
+
+        private void Help説明ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/konekomaro/SimpleViewer");
         }
     }
 }
