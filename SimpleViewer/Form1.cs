@@ -110,6 +110,9 @@ namespace SimpleViewer
                                 obj_data = obj;
 
                                 bitmap = CreateBitmap(obj.value, width, height);
+
+                                // here insert
+                                DrawPictureBox(obj.value, width, height);
                             }
                             else
                             {
@@ -234,6 +237,43 @@ namespace SimpleViewer
             }
             System.Runtime.InteropServices.Marshal.Copy(rgb, 0, ptr, width * height * 3);
             bitmap.UnlockBits(bmpData);
+
+            return bitmap;
+        }
+
+        /// <summary>
+        /// Display Encoded Bitmap data from Dicom file.
+        /// </summary>
+        /// <param name="source">'7FE0,0010' chunk pixcel image data</param>
+        /// <param name="width">dicom definitioned width</param>
+        /// <param name="height">dicom definitioned heigh</param>
+        /// <returns></returns>
+        private Bitmap DrawPictureBox(byte[] source, int width, int height)
+        {
+            Form4 f4 = new Form4(width, height);
+
+            byte[] rgb = new byte[width * height * 3];
+
+            for (int i = 0; i < width * height; i++)
+            {
+                int value = source[2 * i] + source[2 * i + 1] * 256;
+
+                value >>= (2 + (int)whitebalance);
+
+                rgb[3 * i] = (byte)value;
+                rgb[3 * i + 1] = (byte)value;
+                rgb[3 * i + 2] = (byte)value;
+
+                int R = rgb[3 * i];
+                int G = rgb[3 * i + 1];
+                int B = rgb[3 * i + 2];
+
+                Color color = Color.FromArgb(R, G, B);
+
+                f4.image.SetPixel(i % height , (int)(i / height), color);
+            }
+
+            f4.ShowDialog();
 
             return bitmap;
         }

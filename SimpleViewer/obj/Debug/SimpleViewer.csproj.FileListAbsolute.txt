@@ -5,8 +5,8 @@ D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.csprojAssemblyReferen
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Form1.resources
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Properties.Resources.resources
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.csproj.GenerateResource.cache
-D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.csproj.CoreCompileInputs.cache
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.exe
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.pdb
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Form2.resources
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Form3.resources
+D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Form4.resources
