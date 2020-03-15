@@ -21,6 +21,8 @@ namespace SimpleViewer
         // output
         int width;
         int height;
+        double window_center;
+        double window_width;
         Bitmap bitmap;
         List<TagElementObjectData> tagele_obj = new List<TagElementObjectData>();
         TagElementObjectData obj_data;
@@ -33,9 +35,6 @@ namespace SimpleViewer
 
         private void ExecuteCommnadDisplayAndParsing()
         {
-            //iFilename = "temp.dcm";
-            //iFilename = @"koneko001.dcm";
-
             ConvertJpegToDICOMFile(iFilename, intermediateFile);
 
             iFilename = intermediateFile;
@@ -109,10 +108,9 @@ namespace SimpleViewer
 
                                 obj_data = obj;
 
-                                bitmap = CreateBitmap(obj.value, width, height);
+                                bitmap = CreateBitmap(obj.value, width, height, window_center, window_width);
 
-                                // here insert
-                                DrawPictureBox(obj.value, width, height);
+                                DrawPictureBox(obj.value, width, height, window_center, window_width);
                             }
                             else
                             {
@@ -124,6 +122,16 @@ namespace SimpleViewer
                                     width = GetWidthFrom00280010(obj);
                                 if ("0028,0011" == TagEle[i])
                                     height = GetHeightFrom00280011(obj);
+
+                                if("0028,1050" == TagEle[i])
+                                {
+                                    window_center = double.Parse(Encoding.UTF8.GetString(obj.value));
+                                }
+
+                                if ("0028,1051" == TagEle[i])
+                                {
+                                    window_width = double.Parse(Encoding.UTF8.GetString(obj.value));
+                                }
                             }
 
                             i++;
@@ -144,7 +152,7 @@ namespace SimpleViewer
         {
             whitebalance += (double)(e.Delta / 120) / 10;
 
-            bitmap = CreateBitmap(obj_data.value, width, height);
+            bitmap = CreateBitmapTuningLUT(obj_data.value, width, height, window_center, window_width);
 
             DisplayPictureboxImageData();
         }
@@ -216,7 +224,50 @@ namespace SimpleViewer
         /// <param name="width">dicom definitioned width</param>
         /// <param name="height">dicom definitioned heigh</param>
         /// <returns></returns>
-        private Bitmap CreateBitmap(byte[] source, int width, int height)
+        private Bitmap CreateBitmap(byte[] source, int width, int height, double window_center, double window_width)
+        {
+            Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+            BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, width, height),
+                                    ImageLockMode.ReadWrite, bitmap.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            byte[] rgb = new byte[width * height * 3];
+
+
+            for (int i = 0; i < width * height; i++)
+            {
+                int value = source[2 * i] + source[2 * i + 1] * 256;
+
+                double val = value;
+
+                if (value >= window_width)
+                {
+                    val = 255;
+                }
+                else if (value < 0)
+                {
+                    val = 0;
+                }
+                else
+                {
+                    val = val / window_width;
+                    val = val * 256;
+                }
+
+                value = (int)val;
+
+                rgb[3 * i] = (byte)value;
+                rgb[3 * i + 1] = (byte)value;
+                rgb[3 * i + 2] = (byte)value;
+            }
+
+            System.Runtime.InteropServices.Marshal.Copy(rgb, 0, ptr, width * height * 3);
+            bitmap.UnlockBits(bmpData);
+
+            
+            return bitmap;
+        }
+
+        private Bitmap CreateBitmapTuningLUT(byte[] source, int width, int height, double window_center, double window_width)
         {
             Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
             BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, width, height),
@@ -235,8 +286,10 @@ namespace SimpleViewer
                 rgb[3 * i + 1] = (byte)value;
                 rgb[3 * i + 2] = (byte)value;
             }
+
             System.Runtime.InteropServices.Marshal.Copy(rgb, 0, ptr, width * height * 3);
             bitmap.UnlockBits(bmpData);
+
 
             return bitmap;
         }
@@ -248,7 +301,7 @@ namespace SimpleViewer
         /// <param name="width">dicom definitioned width</param>
         /// <param name="height">dicom definitioned heigh</param>
         /// <returns></returns>
-        private Bitmap DrawPictureBox(byte[] source, int width, int height)
+        private void DrawPictureBox(byte[] source, int width, int height, double window_center, double window_width)
         {
             Form4 f4 = new Form4(width, height);
 
@@ -258,7 +311,22 @@ namespace SimpleViewer
             {
                 int value = source[2 * i] + source[2 * i + 1] * 256;
 
-                value >>= (2 + (int)whitebalance);
+                double val = value;
+
+                if (value >= window_width)
+                {
+                    val = 255;
+                }
+                else if (value < 0)
+                {
+                    val = 0;
+                }
+                else
+                {
+                    val = val / window_width;
+                    val = val * 256;
+                }
+                value = (int)val;
 
                 rgb[3 * i] = (byte)value;
                 rgb[3 * i + 1] = (byte)value;
@@ -270,12 +338,10 @@ namespace SimpleViewer
 
                 Color color = Color.FromArgb(R, G, B);
 
-                f4.image.SetPixel(i % height , (int)(i / height), color);
+                f4.image.SetPixel(i % width, (int)(i / width), color);
             }
 
             f4.ShowDialog();
-
-            return bitmap;
         }
 
         /// <summary>
@@ -654,3 +720,25 @@ namespace SimpleViewer
         }
     }
 }
+
+
+/*
+if (value >= window_width)
+{
+    val = 255;
+}
+else if (value < 0)
+{
+    val = 0;
+}
+else if (value < window_center)
+{
+    val = val / window_center;
+    val = 127 * val;
+}
+else if (value >= window_center)
+{
+    double tmp = (window_width - window_center) / window_width;
+    val = 127 + (val - window_center) * tmp;
+}
+*/
