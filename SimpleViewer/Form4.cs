@@ -21,8 +21,6 @@ namespace SimpleViewer
             image = new Bitmap(512, 512);
 
             pictureBox1.Image = image;
-
-            image.SetPixel(100, 100, Color.Black);            
         }
         public Form4(int width, int height)
         {
@@ -31,8 +29,6 @@ namespace SimpleViewer
             image = new Bitmap(width, height);
 
             pictureBox1.Image = image;
-
-            image.SetPixel(100, 100, Color.Black);
         }
     }
 }

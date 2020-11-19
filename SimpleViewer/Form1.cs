@@ -14,19 +14,23 @@ namespace SimpleViewer
 {
     public partial class Form1 : Form
     {
-        // input
+        // input parameters
         string iFilename;
         string intermediateFile = "tmp_ImplicitLittleEndian.dcm";
 
-        // output
+        // output parameters
         int width;
         int height;
-        double window_center;
-        double window_width;
         Bitmap bitmap;
         List<TagElementObjectData> tagele_obj = new List<TagElementObjectData>();
         TagElementObjectData obj_data;
         double whitebalance;
+
+        // dicom tag element parameters
+        double window_center;
+        double window_width;
+        string photometric_interpretation;
+        int planar_configuration;
 
         public Form1()
         {
@@ -104,13 +108,29 @@ namespace SimpleViewer
                             {
                                 long start = fs.Position - 4;
 
-                                SetPixcelsDataContainer(fs, (int)start, (int)fileLength, ref fi_count, ref obj);
+                                if (photometric_interpretation == "RGB ")
+                                {
+                                    SetPixcelsDataContainerRGB(fs, (int)start, (int)fileLength, ref fi_count, ref obj);
 
-                                obj_data = obj;
+                                    obj_data = obj;
 
-                                bitmap = CreateBitmap(obj.value, width, height, window_center, window_width);
+                                    bitmap = CreateBitmapRGB(obj.value, width, height);
 
-                                DrawPictureBox(obj.value, width, height, window_center, window_width);
+                                    if (planar_configuration == 1)
+                                        DrawPictureBoxRGBPlanar_One(obj.value, width, height);
+                                    else if (planar_configuration == 0)
+                                        DrawPictureBoxRGBPlanar_Zero(obj.value, width, height);
+                                }
+                                else
+                                {
+                                    SetPixcelsDataContainer(fs, (int)start, (int)fileLength, ref fi_count, ref obj);
+
+                                    obj_data = obj;
+
+                                    bitmap = CreateBitmap(obj.value, width, height, window_center, window_width);
+
+                                    DrawPictureBox(obj.value, width, height, window_center, window_width);
+                                }
                             }
                             else
                             {
@@ -118,12 +138,19 @@ namespace SimpleViewer
 
                                 tagele_obj.Add(obj);
 
-                                if ("0028,0010" == TagEle[i])
-                                    width = GetWidthFrom00280010(obj);
-                                if ("0028,0011" == TagEle[i])
-                                    height = GetHeightFrom00280011(obj);
+                                if ("0028,0004" == TagEle[i])
+                                    photometric_interpretation = GetPhotometoricInterpretation(obj);
 
-                                if("0028,1050" == TagEle[i])
+                                if ("0028,0006" == TagEle[i])
+                                    planar_configuration = GetPlanarConfiguration(obj);
+
+                                if ("0028,0010" == TagEle[i])
+                                    height = GetWidthFrom00280010(obj);
+
+                                if ("0028,0011" == TagEle[i])
+                                    width = GetHeightFrom00280011(obj);
+
+                                if ("0028,1050" == TagEle[i])
                                 {
                                     window_center = double.Parse(Encoding.UTF8.GetString(obj.value));
                                 }
@@ -148,6 +175,11 @@ namespace SimpleViewer
 
         }
 
+        /// <summary>
+        /// Function for mouse wheel scroll. It changes the whitebalance to display.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PictureBox1_MouseWheel(object sender, MouseEventArgs e)
         {
             whitebalance += (double)(e.Delta / 120) / 10;
@@ -157,6 +189,9 @@ namespace SimpleViewer
             DisplayPictureboxImageData();
         }
 
+        /// <summary>
+        /// It shows bitmap image to picturebox.
+        /// </summary>
         private void DisplayPictureboxImageData()
         {
             Bitmap img = new Bitmap(1024, 1024);
@@ -168,16 +203,51 @@ namespace SimpleViewer
             pictureBox1.Image = img;
         }
 
+        /// <summary>
+        /// It gets Photometoric parameter like RGB or MONOCHROME2.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        string GetPhotometoricInterpretation(TagElementObjectData obj)
+        {
+            return Encoding.ASCII.GetString(obj.value);
+        }
+
+        /// <summary>
+        /// It gets Planar configuration parameters 1 or 0
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        private int GetPlanarConfiguration(TagElementObjectData obj)
+        {
+            return ToInt32_LittleEndian(obj.value);
+        }
+
+        /// <summary>
+        /// It gets width of images.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         private int GetWidthFrom00280010(TagElementObjectData obj)
         {
             return ToInt32_LittleEndian(obj.value);
         }
 
+        /// <summary>
+        /// It gets height of images.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         private int GetHeightFrom00280011(TagElementObjectData obj)
         {
             return ToInt32_LittleEndian(obj.value);
         }
 
+        /// <summary>
+        /// It shows detail information for dicom tag element then first datagridview column.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DataGridView1_DoubleClick(object sender, EventArgs e)
         {
             var row = dataGridView1.CurrentCell.RowIndex;
@@ -267,6 +337,47 @@ namespace SimpleViewer
             return bitmap;
         }
 
+        /// <summary>
+        /// For type of RGB, Create Encoded Bitmap data from Dicom file.
+        /// </summary>
+        /// <param name="source">'7FE0,0010' chunk pixcel image data</param>
+        /// <param name="width">dicom definitioned width</param>
+        /// <param name="height">dicom definitioned heigh</param>
+        /// <returns></returns>
+        private Bitmap CreateBitmapRGB(byte[] source, int width, int height)
+        {
+            Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+            BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, width, height),
+                                    ImageLockMode.WriteOnly, bitmap.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            byte[] rgb = new byte[width * height * 3];
+
+            int j = 0;
+
+            for (int i = 0; i < width * height; i++)
+            {
+                rgb[j] = source[i + (width * height) * 2];
+                rgb[++j] = source[i + width * height];
+                rgb[++j] = source[i];
+
+                j++;
+            }
+
+            System.Runtime.InteropServices.Marshal.Copy(rgb, 0, ptr, width * height * 3);
+            bitmap.UnlockBits(bmpData);
+
+            return bitmap;
+        }
+
+        /// <summary>
+        /// Function for mouse wheel scroll. It tunes whitebalance according to mouse control.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="window_center"></param>
+        /// <param name="window_width"></param>
+        /// <returns></returns>
         private Bitmap CreateBitmapTuningLUT(byte[] source, int width, int height, double window_center, double window_width)
         {
             Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
@@ -345,6 +456,64 @@ namespace SimpleViewer
         }
 
         /// <summary>
+        /// For planar configuration "On", Display Encoded Bitmap data from Dicom file.
+        /// </summary>
+        /// <param name="source">'7FE0,0010' chunk pixcel image data</param>
+        /// <param name="width">dicom definitioned width</param>
+        /// <param name="height">dicom definitioned heigh</param>
+        /// <returns></returns>
+        private void DrawPictureBoxRGBPlanar_One(byte[] source, int width, int height)
+        {
+            Form4 f4 = new Form4(width, height);
+
+            for (int i = 0; i < width * height; i++)
+            {
+                int r = source[i];
+                int g = source[i + width * height];
+                int b = source[i + (width * height) * 2];
+
+                Color color = Color.FromArgb(255, r, g, b);
+                f4.image.SetPixel(i % width, (int)(i / width), color);
+            }
+
+            f4.ShowDialog();
+        }
+
+        /// <summary>
+        /// For planar configuration "Off", Display Encoded Bitmap data from Dicom file.
+        /// </summary>
+        /// <param name="source">'7FE0,0010' chunk pixcel image data</param>
+        /// <param name="width">dicom definitioned width</param>
+        /// <param name="height">dicom definitioned heigh</param>
+        /// <returns></returns>
+        private void DrawPictureBoxRGBPlanar_Zero(byte[] source, int width, int height)
+        {
+            Form4 f4 = new Form4(width, height);
+
+            Color[] rgb = new Color[width * height];
+
+            int j = 0;
+
+            for (int i = 0; i < source.Length; i += 3)
+            {
+                int R = source[i];
+                int G = source[i + 1];
+                int B = source[i + 2];
+
+                rgb[j] = Color.FromArgb(255, R, G, B);
+
+                j += 1;
+            }
+
+            for (int i = 0; i < rgb.Length; i++)
+            {
+                f4.image.SetPixel(i % width, (int)(i / width), rgb[i]);
+            }
+
+            f4.ShowDialog();
+        }
+
+        /// <summary>
         /// Encoding data for each VR type difinition rules.
         /// </summary>
         /// <param name="vr">VR types</param>
@@ -400,7 +569,7 @@ namespace SimpleViewer
                 case "UI":
                     return Encoding.UTF8.GetString(data);
                 case "UL": // 未実装
-                    return data; //BitConverter.ToInt64(data, 0);
+                    return data; 
                 case "UN":
                     return data;
                 case "US":
@@ -451,6 +620,40 @@ namespace SimpleViewer
             fs.Read(len, 0, 2);
 
             count += 2;
+
+            int size = end - start;
+
+            byte[] data = new byte[size];
+
+            fs.Read(data, 0, size);
+
+            count += size;
+
+            tagele_obj.vr = vr;
+            tagele_obj.length = len;
+            tagele_obj.value = data;
+        }
+
+        /// <summary>
+        /// For type of RGB, Set pixcel data chunk '7FE0,0010' from target opened dcm FileStream.
+        /// </summary>
+        /// <param name="fs">target dcm file FileStream</param>
+        /// <param name="start">start point of '7FEO,0010' chunk</param>
+        /// <param name="end">end point of '7FEO,0010' chunk</param>
+        /// <param name="count">reference for FileStream position</param>
+        /// <param name="tagele_obj">reference for TagElementObjectData parameter</param>
+        private void SetPixcelsDataContainerRGB(FileStream fs, int start, int end, ref long count, ref TagElementObjectData tagele_obj)
+        {
+            byte[] vr = new byte[2];
+            byte[] len = new byte[4];
+
+            fs.Read(vr, 0, 2);
+
+            fs.Position += 2;
+
+            fs.Read(len, 0, 4);
+
+            count += 4;
 
             int size = end - start;
 

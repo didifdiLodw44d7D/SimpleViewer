@@ -10,3 +10,4 @@ D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.pdb
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Form2.resources
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Form3.resources
 D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.Form4.resources
+D:\vs2019\SimpleViewer\SimpleViewer\obj\Debug\SimpleViewer.csproj.CoreCompileInputs.cache
